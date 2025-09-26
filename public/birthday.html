@@ -437,80 +437,139 @@ if (index === cards.length - 1) {
       }
     }
 
-    function initPageFunctions(){
-      let firstScrollDone=false;
-      window.addEventListener("wheel",(e)=>{
-        if(firstScrollDone) return;
-        e.preventDefault();
-        firstScrollDone=true;
-        const birthdayMsg=document.getElementById("birthdayMsg");
-        const apologyMsg=document.getElementById("apologyMsg");
-        const music=document.getElementById("bgMusic");
-        music.play().catch(()=>console.log("Autoplay blocked"));
+function initPageFunctions() {
+  let firstScrollDone = false;
 
-        setTimeout(()=>birthdayMsg.classList.remove("active"), 2500);
-        setTimeout(()=>{
-          apologyMsg.classList.add("active");
-          apologyMsg.addEventListener('transitionend',()=>{
-            document.body.style.overflowY="auto";
-          }, {once:true});
-        },3500);
-      }, {passive:false});
+  // Function to trigger scroll actions
+  function triggerScrollActions() {
+    const birthdayMsg = document.getElementById("birthdayMsg");
+    const apologyMsg = document.getElementById("apologyMsg");
+    const music = document.getElementById("bgMusic");
+    music.play().catch(() => console.log("Autoplay blocked"));
 
-      // Card swipe
-      cards.forEach(card=>{
-        let startX, currentX, isDragging=false;
-        function start(posX){startX=posX; isDragging=true; card.style.transition="none";}
-        function move(posX){if(!isDragging)return; currentX=posX-startX; card.style.transform=`translateX(${currentX}px) rotate(${currentX/20}deg)`;}
-        function end(){
-            document.querySelector(".swipe-hint").classList.remove("active");
-
-          if(!isDragging)return; isDragging=false; card.style.transition="transform 0.3s ease";
-          if(Math.abs(currentX)>100){
-            card.style.transform=`translateX(${currentX>0?1000:-1000}px) rotate(${currentX/10}deg)`;
-            setTimeout(()=>{
-              card.style.display="none";
-              current--;
-              if(current>=0) showCard(current);
-              else {
-  card.style.display = "none";
-  current--;
-  if (current >= 0) {
-    showCard(current);
-  } else {
-    // Hide card container
-    document.querySelector(".card-container").style.display = "none";
-
-    // Show final message
-    const finalMsg = document.getElementById("finalMessage");
-    finalMsg.style.display = "block";
-
-    // Reveal sharp background
-    const sharpBg = document.querySelector("#cards .background-layer.sharp");
-    sharpBg.style.opacity = 1;
-    sharpBg.style.transform = "scale(1.05)"; // optional subtle zoom effect
-
-    // Emoji rain
-    startEmojiRain(["🎉","💖","✨","🥳","🥰"], 5000, 50);
-
-    const finalLink = document.getElementById("finalLink");
-finalLink.classList.add("show");
+    setTimeout(() => birthdayMsg.classList.remove("active"), 2500);
+    setTimeout(() => {
+      apologyMsg.classList.add("active");
+      apologyMsg.addEventListener('transitionend', () => {
+        document.body.style.overflowY = "auto";
+      }, {once:true});
+    }, 3500);
   }
+
+  // --- Desktop scroll ---
+  window.addEventListener("wheel", (e) => {
+    if (firstScrollDone) return;
+    e.preventDefault();
+    firstScrollDone = true;
+    triggerScrollActions();
+  }, {passive: false});
+
+  // --- Mobile swipe ---
+  let touchStartY = 0;
+  window.addEventListener("touchstart", (e) => {
+    touchStartY = e.touches[0].clientY;
+  }, {passive: true});
+
+  window.addEventListener("touchmove", (e) => {
+    if (firstScrollDone) return;
+    const touchEndY = e.touches[0].clientY;
+    if (touchStartY - touchEndY > 50) { // swipe up threshold
+      firstScrollDone = true;
+      triggerScrollActions();
+    }
+  }, {passive: true});
+
+  // --- Card swipe logic ---
+  const cards = document.querySelectorAll(".card");
+  let current = cards.length - 1;
+
+  function showCard(index) {
+    // Show swipe hint only for the first card
+    if (index === cards.length - 1) {
+      document.querySelector(".swipe-hint").classList.add("active");
+    }
+
+    cards.forEach((card, i) => {
+      card.classList.remove("active");
+      card.style.zIndex = i;
+      card.style.opacity = i === index ? 1 : 0;
+      card.style.transform = i === index ? "scale(1)" : "scale(0.95)";
+    });
+
+    const activeCard = cards[index];
+    if (activeCard) {
+      activeCard.classList.add("active");
+      const emojis = JSON.parse(activeCard.getAttribute("data-emojis"));
+      startEmojiRain(emojis);
+    }
+  }
+
+  // Card swipe handlers
+  cards.forEach(card => {
+    let startX, currentX, isDragging = false;
+
+    function start(posX) {
+      startX = posX;
+      isDragging = true;
+      card.style.transition = "none";
+    }
+
+    function move(posX) {
+      if (!isDragging) return;
+      currentX = posX - startX;
+      card.style.transform = `translateX(${currentX}px) rotate(${currentX/20}deg)`;
+    }
+
+    function end() {
+      document.querySelector(".swipe-hint").classList.remove("active");
+      if (!isDragging) return;
+      isDragging = false;
+      card.style.transition = "transform 0.3s ease";
+
+      if (Math.abs(currentX) > 100) {
+        card.style.transform = `translateX(${currentX > 0 ? 1000 : -1000}px) rotate(${currentX / 10}deg)`;
+        setTimeout(() => {
+          card.style.display = "none";
+          current--;
+          if (current >= 0) showCard(current);
+          else {
+            document.querySelector(".card-container").style.display = "none";
+
+            // Show final message
+            const finalMsg = document.getElementById("finalMessage");
+            finalMsg.style.display = "block";
+
+            // Reveal sharp background
+            const sharpBg = document.querySelector("#cards .background-layer.sharp");
+            sharpBg.style.opacity = 1;
+            sharpBg.style.transform = "scale(1.05)";
+
+            // Emoji rain
+            startEmojiRain(["🎉","💖","✨","🥳"], 5000, 50);
+
+            const finalLink = document.getElementById("finalLink");
+            finalLink.classList.add("show");
+          }
+        }, 300);
+      } else {
+        card.style.transform = "translateX(0) rotate(0)";
+      }
+    }
+
+    // Mouse events
+    card.addEventListener("mousedown", e => start(e.clientX));
+    document.addEventListener("mousemove", e => move(e.clientX));
+    document.addEventListener("mouseup", end);
+
+    // Touch events
+    card.addEventListener("touchstart", e => start(e.touches[0].clientX));
+    card.addEventListener("touchmove", e => move(e.touches[0].clientX));
+    card.addEventListener("touchend", end);
+  });
+
+  showCard(current);
 }
 
-            },300);
-          }else{ card.style.transform="translateX(0) rotate(0)"; }
-        }
-        card.addEventListener("mousedown", e=>start(e.clientX));
-        document.addEventListener("mousemove", e=>move(e.clientX));
-        document.addEventListener("mouseup", end);
-        card.addEventListener("touchstart", e=>start(e.touches[0].clientX));
-        card.addEventListener("touchmove", e=>move(e.touches[0].clientX));
-        card.addEventListener("touchend", end);
-      });
-
-      showCard(current);
-    }
   </script>
 </body>
 </html>
