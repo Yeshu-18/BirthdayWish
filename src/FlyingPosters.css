@@ -1,0 +1,71 @@
+.posters-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Blurred background (bottom layer) */
+.posters-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/curtainreveal.png');
+  background-size: cover;         /* fill entire container */
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(15px);             /* blur effect */
+  transform: scale(1.1);          /* prevent edges from showing blur cut-off */
+  z-index: -2;                     /* behind everything */
+}
+
+/* Sharp background (top layer) */
+.posters-container::after {
+  content: "";
+  position: absolute;             /* must be absolute to cover container */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/curtainreveal.png');
+  background-size: contain;       /* scale to fit container */
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(1px);
+  opacity: 0.85;                  /* slightly transparent to let blur show through */
+  z-index: -1;                     /* above blur, below canvas */
+}
+
+.posters-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1; /* canvas above backgrounds */
+}
+
+/* Optional: loading state */
+html.loading .posters-container::after {
+  content: "Loading…";
+  background: none;
+  z-index: 2;
+  color: white;
+  font-size: 1.5rem;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: absolute;
+}
+
+/* After images loaded */
+html.loaded .posters-container::after {
+  opacity: 0.85; /* maintain transparency effect */
+}

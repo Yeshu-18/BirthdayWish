@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Birthday Surprise</title>
+  <style>
+    /* Reset + Layout */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* disable scroll initially */
+      font-family: Arial, sans-serif;
+      color: white;
+      background: #000;
+    }
+
+    section {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Landing Section */
+    #landing {
+      background: linear-gradient(to bottom right, #6a11cb, #2575fc);
+    }
+
+    .message {
+      font-size: 2rem;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 1s ease;
+      position: absolute;
+    }
+    .message.active {
+      opacity: 1;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 20px;
+      font-size: 1.2rem;
+      animation: bounce 1.5s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Cards Section */
+    #cards {
+      height: 100vh;
+      background: linear-gradient(to bottom right, #ff9a9e, #fad0c4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-container {
+      position: relative;
+      width: 300px;
+      height: 400px;
+    }
+
+    .card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: white;
+      color: black;
+      border-radius: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.4rem;
+      text-align: center;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+      cursor: grab;
+      user-select: none;
+      padding: 20px;
+      opacity: 0;
+    }
+
+    /* Card entrance animation */
+    .card.active {
+      opacity: 1;
+      animation: fadeInUp 0.6s ease;
+    }
+    @keyframes fadeInUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Hover effect (desktop only) */
+    .card:hover {
+      transform: scale(1.05) translateY(-10px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .emoji {
+      position: fixed;
+      top: -50px;
+      pointer-events: none;
+      animation: fall linear forwards;
+      z-index: 9999;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* Final message */
+    #finalMessage {
+      font-size: 2rem;
+      color: white;
+      text-align: center;
+      display: none;
+      animation: fadeIn 1s forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Landing Section -->
+  <section id="landing">
+    <div id="birthdayMsg" class="message active">Happy Birthday, My Friend! 🎉</div>
+    <div id="apologyMsg" class="message">About Last Time… 😔 I really messed up and I hope you can forgive me ❤️</div>
+    <div class="scroll-hint">Scroll down for a surprise ⬇️</div>
+  </section>
+
+  <!-- Tinder Cards Section -->
+  <section id="cards">
+    <div class="card-container">
+      <div class="card" data-emojis='["😔","😢","🙏"]'>I’m really sorry 😔 Please forgive me ❤️</div>
+      <div class="card" data-emojis='["🤝","🙌","🫂"]'>I’ll always be with you through ups and downs 💖</div>
+      <div class="card" data-emojis='["💪","🦁","🛡️"]'>You are so strong 💪 Never forget that 🌟</div>
+      <div class="card" data-emojis='["😀","😊","❤️"]'>I hope your day is filled with joy and love ❤️</div>
+      <div class="card" data-emojis='["🎂","🍰","🎉","🎊"]'>Happy Birthday 🥳🎂</div>
+    </div>
+    <div id="finalMessage">🎉 Thank you for swiping through! Happy Birthday once again 💖</div>
+  </section>
+
+  <!-- Background music -->
+  <audio id="bgMusic" src="music.mp3" preload="auto"></audio>
+
+  <script>
+    let firstScrollDone = false;
+
+    window.addEventListener("wheel", (event) => {
+      if (!firstScrollDone) {
+        event.preventDefault();
+
+        // swap messages
+        document.getElementById("birthdayMsg").classList.remove("active");
+        document.getElementById("apologyMsg").classList.add("active");
+
+        // play music
+        const music = document.getElementById("bgMusic");
+        music.play().catch(() => console.log("Autoplay blocked"));
+
+        firstScrollDone = true;
+
+        // allow scrolling after 1s
+        setTimeout(() => {
+          document.body.style.overflowY = "auto";
+        }, 1000);
+      }
+    }, { passive: false });
+
+    // Emoji Rain Function
+    function startEmojiRain(emojis, duration = 4000, count = 25) {
+      for (let i = 0; i < count; i++) {
+        const emoji = document.createElement("div");
+        emoji.classList.add("emoji");
+        emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        emoji.style.left = Math.random() * 100 + "vw";
+        emoji.style.animationDuration = (Math.random() * 2 + 3) + "s";
+        emoji.style.fontSize = (Math.random() * 20 + 20) + "px";
+        document.body.appendChild(emoji);
+
+        setTimeout(() => emoji.remove(), duration);
+      }
+    }
+
+    const cards = document.querySelectorAll(".card");
+    let current = cards.length - 1; // top card index
+
+    function showCard(index) {
+      cards.forEach((card, i) => {
+        card.classList.remove("active");
+        card.style.zIndex = i;
+        card.style.opacity = i === index ? 1 : 0;
+        card.style.transform = i === index ? "scale(1)" : "scale(0.95)";
+      });
+
+      const activeCard = cards[index];
+      if (activeCard) {
+        activeCard.classList.add("active");
+        const emojis = JSON.parse(activeCard.getAttribute("data-emojis"));
+        startEmojiRain(emojis);
+
+        // Add swipe hint for first card
+if (index === cards.length - 1) { // top card
+  const hint = document.createElement("div");
+  hint.textContent = "⬅️ Swipe the cards ➡️";
+  hint.style.position = "absolute";
+  hint.style.bottom = "calc(100% + 20px)";  // 20px above the card
+  hint.style.left = "50%";               
+  hint.style.transform = "translateX(-50%)";
+  hint.style.color = "white";
+  hint.style.fontSize = "1.5rem";        
+  hint.style.opacity = "0.9";
+  hint.style.pointerEvents = "none";
+  hint.style.zIndex = "1000";
+  hint.style.whiteSpace = "nowrap";      
+  hint.style.textAlign = "center";       
+
+  document.querySelector(".card-container").appendChild(hint);
+
+  // Remove after 5 seconds
+  setTimeout(() => hint.remove(), 5000);
+}
+
+
+
+
+
+
+
+      }
+    }
+
+    // Swipe logic (mouse + touch)
+    cards.forEach((card) => {
+      let startX, currentX, isDragging = false;
+
+      function start(posX) {
+        startX = posX;
+        isDragging = true;
+        card.style.transition = "none";
+      }
+
+      function move(posX) {
+        if (!isDragging) return;
+        currentX = posX - startX;
+        card.style.transform = `translateX(${currentX}px) rotate(${currentX / 20}deg)`;
+      }
+
+      function end() {
+        if (!isDragging) return;
+        isDragging = false;
+        card.style.transition = "transform 0.3s ease";
+
+        if (Math.abs(currentX) > 100) {
+          card.style.transform = `translateX(${currentX > 0 ? 1000 : -1000}px) rotate(${currentX / 10}deg)`;
+          setTimeout(() => {
+            card.style.display = "none";
+            current--;
+            if (current >= 0) {
+              showCard(current);
+            } else {
+              document.querySelector(".card-container").style.display = "none";
+              document.getElementById("finalMessage").style.display = "block";
+              startEmojiRain(["🎉","💖","✨","🥳"], 5000, 50);
+            }
+          }, 300);
+        } else {
+          card.style.transform = "translateX(0) rotate(0)";
+        }
+      }
+
+      // Mouse events
+      card.addEventListener("mousedown", (e) => start(e.clientX));
+      document.addEventListener("mousemove", (e) => move(e.clientX));
+      document.addEventListener("mouseup", end);
+
+      // Touch events
+      card.addEventListener("touchstart", (e) => start(e.touches[0].clientX));
+      card.addEventListener("touchmove", (e) => move(e.touches[0].clientX));
+      card.addEventListener("touchend", end);
+    });
+
+    // Show first card
+    showCard(current);
+  </script>
+
+</body>
+</html>

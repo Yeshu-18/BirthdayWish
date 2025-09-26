@@ -1,0 +1,279 @@
+/* Full-screen container */
+.surprise-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to right, #ff9a9e, #fad0c4);
+}
+
+/* Curtain container */
+.curtain-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  z-index: 10000;
+}
+
+/* Curtain halves */
+.curtain-half {
+  flex: 1;
+  background-image: url('/intro.jpg');
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  transition: transform 1.2s cubic-bezier(0.77, 0, 0.175, 1);
+  clip-path: polygon(
+    0 0, 100% 0,
+    100% 100%, 0 100%
+  );
+}
+
+.curtain-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  opacity: 0; /* start invisible */
+  transition: opacity 1.2s ease-in-out;
+}
+
+/* Blurred bottom layer using ::before */
+.curtain-background::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/curtainreveal.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(15px);
+  transform: scale(1.1);  /* prevent edges from showing blur cut-off */
+  z-index: -2;             /* bottom-most layer */
+}
+
+/* Sharp top layer using ::after with slight transparency */
+.curtain-background::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/curtainreveal.png');
+  background-size: contain;  /* or 'contain' if you want full image fit */
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.85;           /* slightly transparent to let blur show through */
+  z-index: -1;             /* above blurred layer */
+}
+
+/* Make the background visible when curtain opens */
+.curtain-background.visible {
+  opacity: 1;
+}
+
+.curtain-background.fade-out {
+  animation: fadeOut 1.5s forwards;
+  opacity: 0; /* fade out smoothly */
+}
+
+
+
+
+/* Left & Right background positions */
+.curtain-half.left { background-position: left center; }
+.curtain-half.right { background-position: right center; }
+
+/* Curtain open animation with realistic ripple */
+.curtain-half.left.open {
+  transform: translateX(-100%) rotate(-1.5deg);
+}
+
+.curtain-half.right.open {
+  transform: translateX(100%) rotate(1.5deg);
+}
+
+/* Multi-point wavy keyframes for left */
+@keyframes wave-left {
+  0% {
+    clip-path: polygon(
+      0 0, 100% 0,
+      100% 100%, 0 100%
+    );
+  }
+  25% {
+    clip-path: polygon(
+      0 0, 100% 0,
+      100% 100%, 0 95%,
+      0 90%, 0 85%, 0 80%, 0 75%, 0 70%, 0 65%
+    );
+  }
+  50% {
+    clip-path: polygon(
+      0 0, 100% 0,
+      100% 100%, 0 105%,
+      0 110%, 0 115%, 0 120%, 0 125%, 0 130%, 0 135%
+    );
+  }
+  75% {
+    clip-path: polygon(
+      0 0, 100% 0,
+      100% 100%, 0 100%,
+      0 95%, 0 90%, 0 85%, 0 80%, 0 75%, 0 70%
+    );
+  }
+  100% {
+    clip-path: polygon(
+      0 0, 100% 0,
+      100% 100%, 0 100%
+    );
+  }
+}
+
+/* Multi-point wavy keyframes for right */
+@keyframes wave-right {
+  0% {
+    clip-path: polygon(
+      0 0, 100% 0,
+      100% 100%, 0 100%
+    );
+  }
+  25% {
+    clip-path: polygon(
+      0 5%, 100% 0,
+      100% 100%, 0 100%,
+      0 105%, 0 110%, 0 115%, 0 120%, 0 125%, 0 130%
+    );
+  }
+  50% {
+    clip-path: polygon(
+      0 -5%, 100% 0,
+      100% 100%, 0 100%,
+      0 -10%, 0 -15%, 0 -20%, 0 -25%, 0 -30%, 0 -35%
+    );
+  }
+  75% {
+    clip-path: polygon(
+      0 0, 100% 0,
+      100% 100%, 0 100%,
+      0 5%, 0 10%, 0 15%, 0 20%, 0 25%, 0 30%
+    );
+  }
+  100% {
+    clip-path: polygon(
+      0 0, 100% 0,
+      100% 100%, 0 100%
+    );
+  }
+}
+
+/* Center clickable hitbox */
+.hitbox {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hint-text {
+  color: white;
+  font-size: 1.5rem;
+  text-align: center;
+  user-select: none;
+  white-space: nowrap;
+  animation: blinkGlow 1.5s infinite alternate;
+}
+
+/* Blinking + glowing animation */
+@keyframes blinkGlow {
+  0% {
+    opacity: 0.5;
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #ff6ec7, 0 0 30px #ff6ec7, 0 0 40px #ff6ec7;
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #ff6ec7, 0 0 40px #ff6ec7, 0 0 50px #ff6ec7;
+  }
+  100% {
+    opacity: 0.5;
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #ff6ec7, 0 0 30px #ff6ec7, 0 0 40px #ff6ec7;
+  }
+}
+
+
+
+/* Container for all posters */
+.flying-posters-container {
+  width: 100%;
+  height: 100%;
+  opacity: 0; /* start invisible */
+  animation: fadeIn 1s forwards; /* smooth fade-in */
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Fade-out animation */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Class to trigger fade-out */
+.flying-posters-container.fade-out {
+  animation: fadeOut 1s forwards;
+}
+
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .hitbox { width: 100px; height: 100px; }
+  .hint-text { font-size: 1.2rem; }
+}
+
+.full-photo-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/intro.jpg'); /* 👈 replace with your image path */
+  background-size: cover;       /* make sure it fills the screen */
+  background-position: center;  /* keep it centered */
+  background-repeat: no-repeat; /* prevent tiling */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 5;
+}
+
+
+.full-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+

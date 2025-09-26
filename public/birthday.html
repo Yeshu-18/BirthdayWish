@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birthday Surprise</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Smooth fade-in for entire page */
+@keyframes pageFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+body {
+  opacity: 0;              /* start invisible */
+  animation: pageFadeIn 1.5s ease forwards; /* fade in on load */
+}
+
+    /* Reset + layout */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Dancing Script', cursive;
+      background: #000;
+      color: white;
+      overflow: hidden;
+    }
+    section {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Intro overlay */
+    #introOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 1;
+      transition: opacity 1s ease;
+    }
+    .overlay-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('final.png');
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    .overlay-layer.blurred { filter: blur(20px); z-index: 1; background-size: cover; }
+    .overlay-layer.sharp { z-index: 2; background-size: contain; }
+
+    /* Landing section */
+    #landing { position: relative; width: 100%; overflow: hidden; }
+    .background-layer {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image: url('final.png');
+      background-size: contain; background-position: center; background-repeat: no-repeat;
+    }
+    .background-layer.blurred { filter: blur(20px); z-index: 1; background-size: cover; }
+    .background-layer.sharp { filter: blur(1px); z-index: 2; background-size: contain; }
+
+    /* Messages */
+    .message {
+      font-size: clamp(20px, 4vw, 36px);
+      font-weight: bold;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 1s ease;
+      position: absolute;
+      z-index: 3;
+      padding: 1rem 2rem;
+      background: rgba(0,0,0,0.3);
+      border-radius: 1rem;
+      text-shadow:
+        0 0.1em 0.2em rgba(0,0,0,0.7),
+        0 0.2em 0.4em rgba(0,0,0,0.6),
+        0 0.3em 0.6em rgba(0,0,0,0.5);
+    }
+    .message.active { opacity: 1; visibility: visible; }
+
+.scroll-hint {
+  position: absolute;
+  bottom: 2vh;
+  font-size: clamp(14px, 3vw, 22px);
+  animation: bounce 1.5s infinite;
+  z-index: 3;
+  opacity: 0;            /* hidden initially */
+  visibility: hidden;    /* hidden initially */
+  transition: opacity 0.8s ease;
+}
+.scroll-hint.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+    @keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);} }
+
+/* Cards section */
+#cards {
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Blurred background (always visible) */
+#cards .background-layer.blurred {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: url('card_sec.png'); /* your image */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  filter: blur(20px);
+  z-index: 1;
+}
+
+/* Sharp background (hidden initially) */
+#cards .background-layer.sharp {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: url('picture2.png'); /* same image */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  z-index: 2;
+  opacity: 0;               /* hidden initially */
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+/* Cards container above backgrounds */
+.card-container {
+  position: relative;
+  z-index: 3;
+  width: 80vw;
+  max-width: 400px;
+  height: 60vh;
+  max-height: 600px;
+  margin: 0 auto;
+}
+
+
+    /* Card */
+    .card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image: url('card_sec.png');
+      background-size: cover;
+      background-position: center;
+      color: white;
+      border-radius: clamp(10px, 2vw, 30px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-weight: 700;
+      cursor: grab;
+      user-select: none;
+      padding: clamp(10px, 2%, 30px);
+      opacity: 0;
+      box-shadow: 0 2vh 4vh rgba(0,0,0,0.2);
+      transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
+      font-size: clamp(25px, 5vw, 40px);
+      text-shadow:
+        0 0.1em 0.2em rgba(0,0,0,0.7),
+        0 0.2em 0.4em rgba(0,0,0,0.6),
+        0 0.3em 0.6em rgba(0,0,0,0.5);
+    }
+    .card.active { opacity: 1; animation: fadeInUp 0.6s ease; }
+    @keyframes fadeInUp { from { transform: translateY(3vh); opacity:0; } to { transform: translateY(0); opacity:1; } }
+    .card:hover { transform: scale(1.03) translateY(-1vh); box-shadow: 0 4vh 8vh rgba(0,0,0,0.3); }
+
+    /* Emoji */
+    .emoji {
+      position: fixed;
+      top: -50px;
+      pointer-events: none;
+      animation: fall linear forwards;
+      z-index: 9999;
+    }
+    @keyframes fall { to { transform: translateY(100vh) rotate(360deg); opacity:0; } }
+
+    /* Final message */
+#finalMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(25px, 5vw, 40px);
+  color: white;
+  text-align: center;
+  display: none;
+  z-index: 4;
+  max-width: 90%;       /* limit width to prevent too much space */
+  width: fit-content;   /* shrink to text content */
+  line-height: 1.4;     /* better spacing for multi-line text */
+  padding: 1rem;        /* reduce horizontal padding */
+  text-shadow:
+    0 0.1em 0.2em rgba(0,0,0,0.7),
+    0 0.2em 0.4em rgba(0,0,0,0.6),
+    0 0.3em 0.6em rgba(0,0,0,0.5);
+  animation: fadeIn 1s forwards;
+  box-sizing: border-box; /* ensures padding is inside width */
+  word-break: break-word; /* wrap long text */
+}
+
+
+@keyframes fadeIn { 
+  from { opacity: 0; } 
+  to { opacity: 1; } 
+}
+
+
+/* Swipe hint aligned with card horizontally */
+.card-container {
+  position: relative;  /* ensures hint positions relative to card */
+}
+
+.swipe-hint {
+  position: absolute;
+  bottom: 100%; /* just above the card */
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  font-size: clamp(14px, 3vw, 22px);
+  background: rgba(0,0,0,0.4);
+  padding: 0.3em 0.8em;
+  border-radius: 1em;
+  z-index: 5;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.8s ease;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.swipe-hint.active {
+  opacity: 1;
+  visibility: visible;
+  animation: swipeLeftRight 1.5s ease-in-out infinite;
+}
+
+@keyframes swipeLeftRight {
+  0%, 100% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+  50% {
+    transform: translateX(-60%) translateY(-10px); /* small shift left */
+  }
+}
+
+
+#finalLink {
+  display: none;
+  position: fixed;
+  bottom: 20px;                 /* stick to bottom */
+  left: 50%;
+  transform: translateX(-50%);  /* center horizontally */
+  text-align: center;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+
+#finalLink.show {
+  display: block;
+  opacity: 1;                   /* fade in */
+}
+
+.hint-text {
+  margin-bottom: 8px;
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 6px rgba(0,0,0,0.6);
+}
+
+.link-image {
+  width: 120px;       /* fixed size */
+  height: auto;       /* maintain aspect ratio */
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  animation: pulse 2s ease-in-out infinite, wiggle 1.5s ease-in-out infinite;
+}
+
+.link-image:hover {
+  transform: scale(1.12); /* zoom slightly on hover */
+}
+
+/* Slow pulse animation */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: translateY(-10px); }  /* grows slightly */
+}
+
+/* Optional wiggle animation (left-right) */
+@keyframes wiggle {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+}
+
+
+
+  </style>
+</head>
+<body>
+
+  <!-- Intro Overlay -->
+  <div id="introOverlay">
+    <div class="overlay-layer blurred"></div>
+    <div class="overlay-layer sharp"></div>
+  </div>
+
+  <!-- Landing Section -->
+  <section id="landing">
+    <div class="background-layer blurred"></div>
+    <div class="background-layer sharp"></div>
+    <div id="birthdayMsg" class="message">Happy Birthday, My Anbu Thozhiye 🐵💗</div>
+    <div id="apologyMsg" class="message">And... 😔<br>I'm really SORRY d🫰</div>
+    <div class="scroll-hint">Scroll down ⬇️</div>
+  </section>
+
+  <!-- Cards Section -->
+<section id="cards">
+  <div class="background-layer blurred"></div>
+  <div class="background-layer sharp"></div>
+  
+
+
+  <div class="card-container">
+   
+    <div class="swipe-hint">⬅️ Swipe ➡️</div>
+    <div class="card" data-emojis='["💪","🦁","🛡️","💛"]'>
+      And lastly, nee yarukkagavum bayapudatha<br>You're a brave girl 🦸🏻‍♀...<br>And I'll always be there for you ♾️ <br>ALWAYS...
+    </div>
+    <div class="card" data-emojis='["😔","😢","🙏","💌"]'>I'm really sorry d... SORRY 😔</div>
+    <div class="card" data-emojis='["🤝","🥰","🤍","🫂","🐵"]'>And<br>You're truly a... REAL...<br>KORANGU 🐒<BR>and also oru nalla friend 😊<br>but enna, antha reply mattum knjm sikram panna nala irukkum 😂<br>And...</div>
+    <div class="card" data-emojis='["😊","❤️","🌸","🎈","🎁"]'>I wish,<br>you'll have a wonderful day today ❤️</div>
+    <div class="card" data-emojis='["🎂","🍰","🎉","💗","😺"]'>Once Again,<br>Happy Birthday d <br>korangee💖🥳🎂</div>
+  </div>
+  
+  <div id="finalMessage">Thangal porumaikku mikka nandri 😄 !<br> Once again,<br> Happy Birthday d, PAKKI💖</div>
+
+  <!-- Link at bottom -->
+<div id="finalLink">
+  <div class="hint-text">Click to open 💌</div>
+  <a href="https://www.snapchat.com/unlock/?type=SNAPCODE&uuid=b3db3463101345a08b6ce433c5b1ec97&metadata=01" target="_blank">
+    <img src="mail.png" class="link-image">
+  </a>
+</div>
+
+</section>
+
+
+  <!-- Background music -->
+  <audio id="bgMusic" src="music.mp3" preload="auto"></audio>
+
+  <script>
+    // Emoji Rain
+    function startEmojiRain(emojis, duration=4000, count=25){
+      for(let i=0;i<count;i++){
+        setTimeout(()=>{
+          const emoji=document.createElement("div");
+          emoji.classList.add("emoji");
+          emoji.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+          emoji.style.left=Math.random()*100+"vw";
+          emoji.style.animationDuration=(Math.random()*2+3)+"s";
+          emoji.style.fontSize=(Math.random()*5+20)+"px";
+          document.body.appendChild(emoji);
+          setTimeout(()=>emoji.remove(), duration);
+        }, i*50);
+      }
+    }
+
+    // Intro overlay handling
+    window.addEventListener("load", ()=>{
+      setTimeout(()=>{
+        const overlay = document.getElementById("introOverlay");
+        overlay.style.opacity=0;
+        setTimeout(()=>{
+          overlay.style.display="none";
+          document.getElementById("birthdayMsg").classList.add("active");
+          // Show scroll hint after birthday message fades in
+setTimeout(() => {
+  document.querySelector(".scroll-hint").classList.add("active");
+}, 1200); // wait a bit so it appears smoothly
+          initPageFunctions();
+        },1000);
+      },4000);
+    });
+
+    // Cards logic
+    const cards = document.querySelectorAll(".card");
+    let current = cards.length-1;
+    function showCard(index){
+        // Show swipe hint only for the first card
+if (index === cards.length - 1) {
+  document.querySelector(".swipe-hint").classList.add("active");
+}
+
+      cards.forEach((card,i)=>{
+        card.classList.remove("active");
+        card.style.zIndex=i;
+        card.style.opacity=i===index?1:0;
+        card.style.transform=i===index?"scale(1)":"scale(0.95)";
+      });
+      const activeCard=cards[index];
+      if(activeCard){
+        activeCard.classList.add("active");
+        const emojis=JSON.parse(activeCard.getAttribute("data-emojis"));
+        startEmojiRain(emojis);
+      }
+    }
+
+    function initPageFunctions(){
+      let firstScrollDone=false;
+      window.addEventListener("wheel",(e)=>{
+        if(firstScrollDone) return;
+        e.preventDefault();
+        firstScrollDone=true;
+        const birthdayMsg=document.getElementById("birthdayMsg");
+        const apologyMsg=document.getElementById("apologyMsg");
+        const music=document.getElementById("bgMusic");
+        music.play().catch(()=>console.log("Autoplay blocked"));
+
+        setTimeout(()=>birthdayMsg.classList.remove("active"), 2500);
+        setTimeout(()=>{
+          apologyMsg.classList.add("active");
+          apologyMsg.addEventListener('transitionend',()=>{
+            document.body.style.overflowY="auto";
+          }, {once:true});
+        },3500);
+      }, {passive:false});
+
+      // Card swipe
+      cards.forEach(card=>{
+        let startX, currentX, isDragging=false;
+        function start(posX){startX=posX; isDragging=true; card.style.transition="none";}
+        function move(posX){if(!isDragging)return; currentX=posX-startX; card.style.transform=`translateX(${currentX}px) rotate(${currentX/20}deg)`;}
+        function end(){
+            document.querySelector(".swipe-hint").classList.remove("active");
+
+          if(!isDragging)return; isDragging=false; card.style.transition="transform 0.3s ease";
+          if(Math.abs(currentX)>100){
+            card.style.transform=`translateX(${currentX>0?1000:-1000}px) rotate(${currentX/10}deg)`;
+            setTimeout(()=>{
+              card.style.display="none";
+              current--;
+              if(current>=0) showCard(current);
+              else {
+  card.style.display = "none";
+  current--;
+  if (current >= 0) {
+    showCard(current);
+  } else {
+    // Hide card container
+    document.querySelector(".card-container").style.display = "none";
+
+    // Show final message
+    const finalMsg = document.getElementById("finalMessage");
+    finalMsg.style.display = "block";
+
+    // Reveal sharp background
+    const sharpBg = document.querySelector("#cards .background-layer.sharp");
+    sharpBg.style.opacity = 1;
+    sharpBg.style.transform = "scale(1.05)"; // optional subtle zoom effect
+
+    // Emoji rain
+    startEmojiRain(["🎉","💖","✨","🥳","🥰"], 5000, 50);
+
+    const finalLink = document.getElementById("finalLink");
+finalLink.classList.add("show");
+  }
+}
+
+            },300);
+          }else{ card.style.transform="translateX(0) rotate(0)"; }
+        }
+        card.addEventListener("mousedown", e=>start(e.clientX));
+        document.addEventListener("mousemove", e=>move(e.clientX));
+        document.addEventListener("mouseup", end);
+        card.addEventListener("touchstart", e=>start(e.touches[0].clientX));
+        card.addEventListener("touchmove", e=>move(e.touches[0].clientX));
+        card.addEventListener("touchend", end);
+      });
+
+      showCard(current);
+    }
+  </script>
+</body>
+</html>
