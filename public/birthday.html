@@ -283,6 +283,12 @@ body {
   transition: opacity 1.5s ease;
 }
 
+@media (max-width: 768px) {
+  #finalLink {
+    bottom: 40px;  /* move higher on tablets/mobiles */
+  }
+}
+
 #finalLink.show {
   display: block;
   opacity: 1;                   /* fade in */
